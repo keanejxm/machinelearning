@@ -4,7 +4,7 @@
 :author: keane
 :file  practice_2.py
 :time  2022/10/18 14:02
-:desc  
+:desc  knn算法
 """
 import os
 from collections import Counter
