@@ -81,11 +81,11 @@ tf.print(tf.reduce_all(h))
 tf.print(tf.reduce_any(i))
 
 # 利用tf.foldr实现tf.reduce_sum
-j = tf.foldr(lambda c,d:c+d,tf.range(10))
+j = tf.foldr(lambda c, d: c + d, tf.range(10))
 tf.print(j)
 
 # cum扫描累积
-k = tf.range(1,10)
+k = tf.range(1, 10)
 tf.print(tf.math.cumsum(k))
 tf.print(tf.math.cumprod(k))
 
@@ -94,9 +94,64 @@ tf.print(tf.argmax(k))
 tf.print(tf.argmin(k))
 
 # tf.math.top_k可以用于对张量排序
-l = tf.constant([1,3,7,5,4,8])
-value,indices = tf.math.top_k(a,3,sorted=True)
-tf.print(value)
-tf.print(indices)
+l = tf.constant([1, 3, 7, 5, 4, 8])
+# value, indices = tf.math.top_k(a, 3, sorted=True)
+# tf.print(value)
+# tf.print(indices)
 
 # 矩阵运算
+
+# 矩阵乘法
+m = tf.constant([[1, 2], [3, 4]])
+n = tf.constant([[2, 0], [0, 2]])
+tf.print(tf.matmul(m, n))
+
+# 矩阵的转置
+tf.print(tf.transpose(m))
+
+# 逆矩阵，必须为tf.float32或者tf.double类型
+o = tf.constant([[1.0, 2], [3.0, 4]], dtype=tf.float32)
+tf.print(tf.linalg.inv(o))
+
+# 矩阵求迹(对角线的和)
+tf.print(tf.linalg.trace(o))
+
+# 矩阵求范数
+tf.print(tf.linalg.norm(o))
+
+# 矩阵行列式
+tf.print(tf.linalg.det(o))
+
+# 矩阵特征值
+tf.print(tf.linalg.eigvalsh(o))
+
+# 矩阵求分解
+# qr分解
+q, r = tf.linalg.qr(o)
+tf.print(q)
+tf.print(r)
+tf.print(q @ r)
+# svd分解
+v, s, d = tf.linalg.svd(o)
+tf.matmul(tf.matmul(s, tf.linalg.diag(v)), d)
+
+# 张量的广播机制
+
+p = tf.constant([1, 2, 3])
+q = tf.constant([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+tf.print(p+q) # 等价于b + tf.broadcast_to(q,p.shape)
+
+tf.print(tf.broadcast_to(q,p.shape))
+
+
+# 计算广播后结果的形状，静态形状，TensorShape类型参数
+tf.print(tf.broadcast_static_shape(p.shape,q.shape))
+
+
+# 计算广播后结果的形状，动态形状 Tensor类型参数
+r = tf.constant([1,2,3])
+s = tf.constant([[1],[2],[3]])
+tf.print(tf.broadcast_dynamic_shape(tf.shape(r),tf.shape(s)))
+
+#广播效果
+# r+s #等价于 tf.broadcast_to(r,[3,3]) + tf.broadcast_to(s,[3,3])
