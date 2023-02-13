@@ -7,7 +7,7 @@
 :desc  tf.keras中的模型和层都是继承tf.Module实现的，也具有变量管理和子模块管理功能。
 """
 import tensorflow as tf
-from tensorflow.keras import models,layers,losses,metrics
+from tensorflow.python.keras import models,layers,losses,metrics
 
 print(issubclass(tf.keras.Model,tf.Module))
 print(issubclass(tf.keras.layers.Layer,tf.Module))
