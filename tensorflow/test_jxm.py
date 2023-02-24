@@ -7,6 +7,10 @@
 :desc  测试的数据而已记得删掉
 """
 import pandas as pd
-
-aa  = pd.nan
-print(aa)
+import numpy as np
+aa = np.object_
+bb = np.str_
+cc = np.unicode_
+print(np.object_)
+print(np.str_)
+print(np.unicode_)
