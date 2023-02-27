@@ -53,7 +53,7 @@ import datetime
 import os
 
 stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-logdir = os.path.join("data", "autograph", stamp)
+logdir = os.path.join("../data", "autograph", stamp)
 writer = tf.summary.create_file_writer(logdir)
 # 开启AutoGraph追踪
 tf.summary.trace_on(graph=True, profiler=True)
