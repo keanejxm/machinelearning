@@ -43,7 +43,7 @@ def liner_regression(x, y):
     # 判断矩阵是否可逆，判断此矩阵的行列式值是否为0，如果不是0，可逆
 
     det_val = np.linalg.det(x_square)  # 该矩阵行列式的值
-    if det_val ==0.0:
+    if det_val == 0.0:
         raise ValueError(f"x矩阵不可逆")
     # 求逆矩阵（求x_square的逆矩阵）
     inverse = np.linalg.inv(x_square)
@@ -52,8 +52,26 @@ def liner_regression(x, y):
     print(w)
 
 
+def line_regression_tf(x, y):
+    """
+    使用tensorflow完成线性回归
+    线性回归函数 y = kx
+    线性回归损失函数 f(x) = (y^-kx)^2 = y^2-2kxy^+k2x2   对此函数求导  导数为零的点
+    :param x:
+    :param y:
+    :return:
+    """
+    x = tf.Variable(0.0,name="k",dtype=tf.float32)
+
+    with tf.GradientTape as tape:
+        y =tf.pow(x,2)+2*x*y
+
+
+
 data = load_data(DATA_PATH)
 np_data = np.array(data)
 x = np_data[:, 0:2]
 y = np_data[:, -1]
-liner_regression(x,y)
+x_tf = tf.convert_to_tensor(x)
+
+# liner_regression(x, y)

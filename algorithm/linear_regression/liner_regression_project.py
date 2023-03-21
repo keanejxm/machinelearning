@@ -474,7 +474,9 @@ def crossValidation(xArr,yArr,numVal=10):
 
 # test for standRegression
 def regression1():
-    xArr, yArr = loadDataSet("data/8.Regression/data.txt")
+    FILE_PATH = r"E:\keane_python\data\regression"
+    DATA_PATH = f"{FILE_PATH}/data.txt"
+    xArr, yArr = loadDataSet(DATA_PATH)
     xMat = mat(xArr)
     yMat = mat(yArr)
     ws = standRegres(xArr, yArr)
