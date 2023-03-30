@@ -29,7 +29,7 @@ import matplotlib.pyplot as plt
 """
 
 # 约会数据路径
-appoint_data_path = r"E:\data\algorithm\knn\datingTestSet2.txt"
+appoint_data_path = r"E:\keane_data\algorithm\knn\datingTestSet2.txt"
 
 
 def appoint_matrix():
@@ -63,8 +63,47 @@ def show_plt():
     x_feature, y_label = appoint_matrix()
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.scatter(x_feature[:, 0], x_feature[:, 1], 15.0 * y_label, 15.0 * y_label)
+    ax.scatter(x_feature[:, 0], x_feature[:, 1], s=15.0 * y_label, c=15.0 * y_label)
     plt.show()
 
 
-show_plt()
+"""
+归一化：
+    1、最小最大归一化
+    2、Z—score归一化
+"""
+
+
+# 归一化特征值
+def auto_normal(dataset):
+    """
+    归一化特征值
+    :param dataset:
+    :return:
+    """
+    # 计算每一个特征的最大值最小值
+    min_val = dataset.min(0)
+    max_val = dataset.max(0)
+    # 计算最大值、最小值的差
+    diff_value = max_val - min_val
+    normal_dataset = np.zeros(np.shape(dataset))
+    m = normal_dataset.shape[0]
+    # 生成与最小值之差组成的矩阵
+    normal_dataset = dataset - np.tile(min_val, (m, 1))
+    normal_dataset = normal_dataset / np.tile(diff_value, (m, 1))
+    return normal_dataset, diff_value, min_val
+
+def classify(inx,dataset,label,k):
+    """
+
+    :param inx:
+    :param dataset:
+    :param label:
+    :param k:
+    :return:
+    """
+    dataset_size = dataset.shape[0]
+    # 欧式距离公式
+
+x_feature, y_label = appoint_matrix()
+auto_normal(x_feature)
