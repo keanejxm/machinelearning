@@ -2,14 +2,12 @@
 # -*- coding:utf-8 -*-
 """
 :author: keane
-:file  knn_study.py
-:time  2023/3/23 10:02
-:desc  
+:file  optimize_web_match.py
+:time  2023/3/31 11:15
+:desc  优化网站匹配knn案例1
 """
-from decimal import Decimal
 
 import numpy as np
-import matplotlib
 import operator
 import matplotlib.pyplot as plt
 
