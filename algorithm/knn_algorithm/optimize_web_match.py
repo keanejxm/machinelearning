@@ -27,134 +27,89 @@ import matplotlib.pyplot as plt
 
 """
 
-# 约会数据路径
+# 数据路径
 appoint_data_path = r"E:\keane_data\algorithm\knn\datingTestSet2.txt"
 
 
-def appoint_matrix():
-    """
-    将数据集转为Numpy类型，并分开特征向量与目标向量
-    :return:
-    """
-    with open(appoint_data_path, "r") as r:
-        try:
-            appoint_data = r.readlines()
-        finally:
-            r.close()
-        row_num = len(appoint_data)
-        x_feature = np.zeros((row_num, 3))
-        # x_feature = list()
+# 采集数据
+# 处理数据
+# 分析数据
+# 选择算法
+# 训练算法
+# 处理数据
+
+class Knn:
+    def __init__(self):
+        pass
+
+    def _knowledge_point(self):
+        """
+        本类用到的的知识点
+        :return:
+        """
+        # 创建ndarray(0)0矩阵,4行3列
+        zero_matrix = np.zeros((4, 3))
+        # 对ndarray的每一行进行赋值
+        zero_matrix[0, :] = [1, 2, 3]
+        # np中tile使用,对ndarray数据进行赋值（复制（m,n）m行n列）
+        a = np.array([1, 2, 3, 4])
+        b = np.tile(a, (2, 1))
+        # 使用matplotlib画图
+        fig = plt.figure()
+        fig.add_subplot(111)
+        x = [1, 2, 3]
+        y = [2, 3, 4]
+        plt.scatter(x, y)
+        plt.show()
+
+    @staticmethod
+    def _read_txt(txt_path):
+        """
+        读取txt数据
+        :return:
+        """
+        # 读取txt数据
+        with open(txt_path, "r") as r:
+            try:
+                res = r.readlines()
+            finally:
+                r.close()
+        return res
+
+    def _deal_data(self):
+        """
+        处理数据
+        :return:
+        """
+        appoint_data_path = r"E:\keane_data\algorithm\knn\datingTestSet2.txt"
+        txt_res = self._read_txt(appoint_data_path)
+        zero_matrix = np.zeros((len(txt_res), 3))
         y_label = list()
-        for i, row_data in enumerate(appoint_data):
-            row_data = row_data.split("\t")
-            x_feature[i, :] = row_data[0:-1]
-            y = row_data[-1].rstrip()
+        for row_index, txt_row in enumerate(txt_res):
+            txt_info = txt_row.split("\t")
+            zero_matrix[row_index, :] = txt_info[0:-1]
+            y_label.append(int(txt_info[-1]))
+        return zero_matrix, y_label
 
-            # x_feature.append(x)
-            y_label.append(int(y))
-        x_feature = np.array(x_feature)
-        y_label = np.array(y_label)
-        return x_feature, y_label
+    def analyze_data(self, x, y):
+        """
+        分析数据，使用matplotlib查看数据分布
+        :return:
+        """
+        fig = plt.figure()
+        fig.add_subplot(111)
+        plt.scatter(x[:, 0], x[:, 1], 15.0 * np.array(y), 15.0 * np.array(y))
+        plt.show()
 
-
-def show_plt():
-    """
-    展示散点图
-    :return:
-    """
-    x_feature, y_label = appoint_matrix()
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.scatter(x_feature[:, 0], x_feature[:, 1], s=15.0 * y_label, c=15.0 * y_label)
-    plt.show()
-
-
-"""
-归一化：
-    1、最小最大归一化
-    2、Z—score归一化
-"""
+    def start(self):
+        matrix_feature, y_label = self._deal_data()
+        # self.analyze_data(matrix_feature,y_label)
+        min_vals = matrix_feature.min(0)
+        max_vals = matrix_feature.max(0)
+        self._knowledge_point()
+        print(min_vals, max_vals)
 
 
-# 归一化特征值
-def auto_normal(dataset):
-    """
-    归一化特征值
-    :param dataset:
-    :return:
-    """
-    # 计算每一个特征的最大值最小值
-    min_val = dataset.min(0)
-    max_val = dataset.max(0)
-    # 计算最大值、最小值的差
-    diff_value = max_val - min_val
-    normal_dataset = np.zeros(np.shape(dataset))
-    m = normal_dataset.shape[0]
-    # 生成与最小值之差组成的矩阵
-    normal_dataset = dataset - np.tile(min_val, (m, 1))
-    normal_dataset = normal_dataset / np.tile(diff_value, (m, 1))
-    return normal_dataset, diff_value, min_val
-
-
-def classify(inx, dataset, labels, k):
-    """
-    knn算法代码实现
-    :param inx:
-    :param dataset:
-    :param label:
-    :param k:
-    :return:
-    """
-    dataset_size = dataset.shape[0]
-    # 欧式距离公式 求差值，平法和，开方
-    dif_val = np.tile(inx, (dataset_size, 1)) - dataset
-    square_val = dif_val ** 2
-    # 对每一行求和
-    sum_square = square_val.sum(axis=1)
-    distance = sum_square ** 0.5
-    # 对距离进行排序，并返回索引（从小到大）
-    sort_distance = distance.argsort()
-    class_count = dict()
-    for i in range(k):
-        label_val = labels[sort_distance[i]]
-        class_count[label_val] = class_count.get(label_val, 0) + 1
-    sort_class_count = sorted(class_count.items(), key=operator.itemgetter(1), reverse=True)
-    return sort_class_count[0][0]
-
-
-def dating_class_test():
-    """"""
-
-    x_feature, y_label = appoint_matrix()
-    # 特质值归一化
-    normal_dataset, diff_value, min_val = auto_normal(x_feature)
-    # 得到数据行数
-    m = normal_dataset.shape[0]
-    # 设置测试样本数量
-    test_ratio = 0.1
-    test_num = int(m * test_ratio)
-    error_count = 0
-    for i in range(test_num):
-        classify_result = classify(normal_dataset[i], normal_dataset[test_num:m, :], y_label[test_num:m], 3)
-        if classify_result != y_label[i]: error_count += 1
-    print(f"错误率{error_count / float(test_num)}")
-    print(error_count)
-
-
-def classify_person():
-    """
-    预测
-    :return:
-    """
-    result_list = ['不喜欢', '一般', '喜欢']
-    percent_tats = float(input("玩游戏所耗时间百分比"))
-    ff_miles = float(input("飞行里程数"))
-    ice_cream = float(input("消费冰淇淋"))
-    dating_data_mat, dating_labels = appoint_matrix()
-    norm_mat, ranges, min_vals = auto_normal(dating_data_mat)
-    in_array = np.array([ff_miles, percent_tats, ice_cream])
-    res = classify((in_array - min_vals) / ranges, norm_mat, dating_labels, 3)
-    print(result_list[res - 1])
-
-
-classify_person()
+if __name__ == '__main__':
+    obj = Knn()
+    obj.start()
