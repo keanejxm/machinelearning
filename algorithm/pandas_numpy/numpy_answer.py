@@ -101,7 +101,6 @@ data[:, -1] = 1  # 最后1列
 print(data)
 # 对于一个已存在数组，添加一个用0填充的边界
 import numpy as np
-
 data = np.ones((5, 5))
 data = np.pad(data, pad_width=1, mode='constant', constant_values=0)
 
