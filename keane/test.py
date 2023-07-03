@@ -54,20 +54,32 @@
 
 # 一个LDA分类器
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from nltk.tokenize.casual import casual_tokenize
+import numpy as np
+# from sklearn.feature_extraction.text import TfidfVectorizer
+# from nltk.tokenize.casual import casual_tokenize
 import csv
-sms = pd.read_csv("sms-spam.csv")
-sms["spam"] = sms.spam.astype(int)
-tfidf_model = TfidfVectorizer(tokenizer=casual_tokenize)
-tfidf_docs = tfidf_model.fit_transform(raw_documents=sms.text).toarray()
-print(tfidf_docs.shape)
-mask = sms.spam.astype(bool).values
-spam_centroid = tfidf_docs[mask].mean(axis = 0)
-ham_centroid = tfidf_docs[~mask].mean(axis = 0)
-spamminess_score = tfidf_docs.dot(spam_centroid-ham_centroid)
-b = spamminess_score.reshape(-1,1)
-from sklearn.preprocessing import MinMaxScaler
-sms['lda_score'] = MinMaxScaler().fit_transform(spamminess_score.reshape(-1,1))
-sms['lda_predict'] = (sms.lda_score>.5).astype(int)
-print(sms['spam lda_predict lda_score'.split()].round(2).head(6))
+
+# sms = pd.read_csv("sms-spam.csv")
+# sms["spam"] = sms.spam.astype(int)
+# # tokenizer 指定分词器中文jieba.lcut
+# tfidf_model = TfidfVectorizer(tokenizer=casual_tokenize)
+# tfidf_docs = tfidf_model.fit_transform(raw_documents=sms.text)
+# tfidf_docs = tfidf_docs.toarray()
+# print(tfidf_docs.shape)
+# voc_ = tfidf_model.vocabulary_
+# voc_ = sorted(voc_.items(), key=lambda x:x[1])
+# mask = sms.spam.astype(bool).values
+# spam_centroid = tfidf_docs[mask].mean(axis=0)
+# ham_centroid = tfidf_docs[~mask].mean(axis=0)
+# a = spam_centroid-ham_centroid
+# spamminess_score = tfidf_docs.dot(spam_centroid - ham_centroid)
+# b = spamminess_score.reshape(-1, 1)
+# from sklearn.preprocessing import MinMaxScaler
+#
+# sms['lda_score'] = MinMaxScaler().fit_transform(spamminess_score.reshape(-1, 1))
+# sms['lda_predict'] = (sms.lda_score > .5).astype(int)
+# print(sms['spam lda_predict lda_score'.split()].round(2).head(6))
+
+aa = np.array([[1, 2, 3], [3, 4, 5], [5, 6, 7]])
+u,s,vt = np.linalg.svd(aa)
+print(vt)
