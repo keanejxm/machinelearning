@@ -213,7 +213,7 @@ def get_splitter(fun=None):
         return None
 
 
-def segment_sentences(path=os.path.join(DATA_PATH, 'book'), splitter=split_sentences_nltk, **find_files_kwargs):
+def segment_sentences(path=os.path.join(DATA_PATH, '../../book'), splitter=split_sentences_nltk, **find_files_kwargs):
     """ Return a list of all sentences and empty lines.
 
     TODO:

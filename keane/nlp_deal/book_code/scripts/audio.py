@@ -209,7 +209,7 @@ def main():
     for i in range(args.num_recordings):
         print("Say something! I'm listening...")
         audio = record_audio()
-        base_dir = '.'
+        base_dir = ''
         ext = '.wav'
         filepath = os.path.join(base_dir, 'audio-{}{}'.format(i, ext))
         while os.path.exists(filepath):

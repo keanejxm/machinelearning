@@ -109,8 +109,8 @@ logger.info('Starting logger in nlpia.constants...')
 USER_HOME = os.path.expanduser("~")
 PROJECT_PATH = PRJECT_DIR = BASE_DIR
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), 'data')
-BOOK_PATH = os.path.join(DATA_PATH, 'book')
+DATA_PATH = os.path.join(os.path.dirname(__file__), '../../data')
+BOOK_PATH = os.path.join(DATA_PATH, '../../book')
 DATA_INFO_FILE = os.path.join(DATA_PATH, 'data_info.csv')
 
 BIGDATA_PATH = os.path.join(os.path.dirname(__file__), 'bigdata')
