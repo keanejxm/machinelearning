@@ -79,7 +79,17 @@ import csv
 # sms['lda_score'] = MinMaxScaler().fit_transform(spamminess_score.reshape(-1, 1))
 # sms['lda_predict'] = (sms.lda_score > .5).astype(int)
 # print(sms['spam lda_predict lda_score'.split()].round(2).head(6))
+# v1 = pd.np.array([1, 2, 3])
+# v2 = pd.np.array([2, 3, 4])
+# print(v1.dot(v2))
+# print(v1 * v2)
+from nltk.tokenize import TreebankWordTokenizer
 
-aa = np.array([[1, 2, 3], [3, 4, 5], [5, 6, 7]])
-u,s,vt = np.linalg.svd(aa)
-print(vt)
+sentence = "The faster Harry got to the store, the faster and faster Harry would get home."
+tokenizer = TreebankWordTokenizer()
+tokenize = tokenizer.tokenize
+token_sequence = tokenize(sentence)
+# 统计每个词出现的次数
+from collections import Counter
+bag_of_word = Counter(token_sequence)
+print(bag_of_word["Harry"])
