@@ -80,7 +80,7 @@ for epoch in range(120):
         iters.append(iter)
         train_costs.append(c[0][0])
 # 保存模型
-model_save_dir = "./uci_housing"
+model_save_dir = "uci_housing"
 if not os.path.exists(model_save_dir):
     os.mkdir(model_save_dir)
 
