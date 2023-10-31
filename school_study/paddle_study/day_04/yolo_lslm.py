@@ -10,9 +10,7 @@
 """
 训练常基于dark-net的YOLOv3网络，目标检测
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
 import os
 
 os.environ["FLAGS_fraction_of_gpu_memory_to_use"] = '0.82'
