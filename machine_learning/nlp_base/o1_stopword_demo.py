@@ -8,6 +8,7 @@
 """
 import jieba
 
+
 def get_stopword_list():
     stop_word_path = "stopword.txt"
     with open(stop_word_path, "r", encoding="utf8") as f:
