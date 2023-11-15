@@ -15,6 +15,49 @@ import sklearn.preprocessing as sp
 train_x = np.array([0.5, 0.6, 0.8, 1.1, 1.4])  # 输入集
 train_y = np.array([5.0, 5.5, 6.0, 6.8, 7.0])  # 输出集
 
+print(train_x)
+print(train_y)
+# 线性函数y = wx +b
+
+w = [1]
+b = [1]
+# 变化率
+lr = 0.001
+# 训练的次数
+epochs = 1000
+#
+epochs_list = []
+loss_list = []
+for epoch in range(epochs):
+    pred_y = w[-1] * train_x + b[-1]
+    # 损失函数sum((y-pred_y)**2)
+    loss = sum((train_y - pred_y) ** 2) / 2
+    print(f"w:{w[-1]},b:{b[-1]},loss:{loss}")
+    loss_list.append(loss)
+    epochs_list.append(epoch)
+    # 损失函数求导,loss倒数为0的倒数，分别求出损失函数倒数为0的点的w的值和b的值
+    d0 = -(train_y - pred_y).sum()
+    d1 = -(train_x * (train_y - pred_y)).sum()
+
+    # 按照学习率更改新的w和b
+    w.append(w[-1] - lr * d1)
+    b.append(b[-1] - lr * d0)
+# 预测函数
+pred_y_1 = w[-1]*train_x +b[-1]
+# 预测函数曲线
+
+plt.figure("linear regression", facecolor='lightgray')
+plt.ylabel("y", fontsize=14)
+plt.xlabel("x", fontsize=14)
+plt.scatter(train_x,train_y)
+plt.plot(train_x,pred_y_1)
+plt.show()
+# 损失函数曲线
+plt.figure("loss",facecolor='lightgray')
+plt.ylabel("loss",fontsize = 14)
+plt.xlabel("epoch",fontsize = 14)
+plt.plot(epochs_list,loss_list)
+plt.show()
 n_epochs = 1000  # 迭代次数
 l_rate = 0.01  # 学习率
 epochs = []  # 记录迭代次数
@@ -62,8 +105,7 @@ plt.ylabel("y", fontsize=14)
 plt.grid(linestyle="")
 plt.scatter(train_x, train_y, c="blue", label="training")
 plt.plot(train_x, pred_y, c="red", label="Regression")
-plt.legend()# 图例
-
+plt.legend()  # 图例
 
 # 展示梯度下降过程
 

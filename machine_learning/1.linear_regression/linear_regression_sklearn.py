@@ -16,6 +16,28 @@ train_y = np.array([5.0, 5.5, 6.0, 6.8, 7.0])  # 输出集
 
 # 创建线性回归器
 model = lm.LinearRegression()
+# 训练
+model.fit(train_x, train_y)
+# 预测
+pred_y = model.predict(train_x)
+# 系数
+coef = model.coef_
+intercept = model.intercept_
+
+# 绘制图像
+plt.figure("loss regression",facecolor="lightgray")
+plt.title("loss regression",fontsize = 20)
+plt.xlabel("x",fontsize = 14)
+plt.ylabel("y",fontsize = 14)
+plt.scatter(train_x,train_y,c="red")
+plt.plot(train_x,pred_y)
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.show()
+
+# 创建线性回归器
+model = lm.LinearRegression()
 
 # 用已知输入、输出数据集训练回归器
 model.fit(train_x, train_y)
@@ -36,6 +58,7 @@ plt.tight_layout()
 # 绘制样本点
 plt.scatter(train_x, train_y, label="training", c='blue', alpha=0.8, s=60)
 # 绘制拟合曲线
-plt.plot(train_x, pred_y, label="regression",c ='orangered')
-plt.legend()
+plt.plot(train_x, pred_y, label="regression", c='orangered')
+
 plt.show()
+plt.legend()
