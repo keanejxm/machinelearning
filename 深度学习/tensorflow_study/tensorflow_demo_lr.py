@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 """
 :author: keane
-:file  tensorflow_demolr.py
+:file  tensorflow_demo_lr.py
 :time  2023/12/4 9:07
 :desc  
 """

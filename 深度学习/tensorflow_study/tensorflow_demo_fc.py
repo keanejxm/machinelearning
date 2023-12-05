@@ -53,51 +53,52 @@ with tf.Session() as sess:
         total_cost = 0.0
         for i in range(total_batch):
             train_x, train_y = mnist.train.next_batch(batch_size)
-            params = {x:train_x,y:train_y}
-            o,c = sess.run([train_op,cost],feed_dict=params)
-            total_cost +=c
+            params = {x: train_x, y: train_y}
+            o, c = sess.run([train_op, cost], feed_dict=params)
+            total_cost += c
 
-        avg_cost =total_cost/total_batch
+        avg_cost = total_cost / total_batch
         print(f"轮数：{epoch},cost：{avg_cost}")
     print("训练结束")
 
     # 模型评估
-    corr = tf.equal(tf.argmax(y,1),
-                    tf.argmax(pred_y,1))
+    corr = tf.equal(tf.argmax(y, 1),
+                    tf.argmax(pred_y, 1))
 
-    accuracy = tf.reduce_mean(tf.cast(corr,"float32"))
+    accuracy = tf.reduce_mean(tf.cast(corr, "float32"))
 
-    acc = sess.run(accuracy,feed_dict={x:mnist.test.images,y:mnist.test.labels})
+    acc = sess.run(accuracy, feed_dict={x: mnist.test.images, y: mnist.test.labels})
     print(f"精度：{acc}")
 
     # 保存模型
-    saver.save(sess,"../model/mnist/")
+    saver.save(sess, "../model/mnist/")
 
 # 加载模型预测
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     # 加载模型
-    saver.restore(sess,"../model/mnist/")
+    saver.restore(sess, "../model/mnist/")
     # 从测试中随机取到2张图像
-    test_x,test_y = mnist.test.next_batch(2)
+    test_x, test_y = mnist.test.next_batch(2)
 
     # 执行预测
-    predv = sess.run(pred_y,feed_dict={x:test_x})
+    predv = sess.run(pred_y, feed_dict={x: test_x})
 
-    out_put = tf.argmax(predv,1).eval()
-    y_true = tf.argmax(test_y,1).eval()
-    pred_val = tf.reduce_max(predv,1).eval()
+    out_put = tf.argmax(predv, 1).eval()
+    y_true = tf.argmax(test_y, 1).eval()
+    pred_val = tf.reduce_max(predv, 1).eval()
     print(f"真实类别:{y_true}")
     print(f"预测类别:{out_put}")
     print(f"预测概率:{pred_val}")
 
     # 显示图像
     import pylab
-    img1 = test_x[0].reshape(28,28)
+
+    img1 = test_x[0].reshape(28, 28)
     pylab.imshow(img1)
     pylab.show()
 
-    img2 = test_x[1].reshape(28,28)
+    img2 = test_x[1].reshape(28, 28)
     pylab.imshow(img2)
     pylab.show()
