@@ -243,5 +243,29 @@ plt.grid()
 plt.savefig("train.png")
 plt.show()
 # 测试
+from PIL import Image
+# 读取测试图像
+def load_img(path):
+    img = paddle.dataset.image.load_and_transform(path,
+                                                  128,128,
+                                                  False)
+    img = img.astype("float32")/255.0
+    return img
 
+# 定义执行器
+place = fluid.CPUPlace()
+infer_exe = fluid.Executor(place)
+model_save_dir = "../model/fruits/"
+# 加载模型
+infer_prog ,feed_vars,fetch_targets = fluid.io.load_inference_model(
+    model_save_dir,infer_exe
+)
+test_img = ""
+infer_imgs = []
+infer_imgs.append(load_img(test_img))
+infer_imgs = numpy.array(infer_imgs)
+# 执行预测
+params = {feed_vars[0]:infer_imgs}
+result = infer_exe.run(infer_prog,feed=params,fetch_list=fetch_targets)
+print(result)
 # 评估
