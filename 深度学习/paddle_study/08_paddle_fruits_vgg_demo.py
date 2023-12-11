@@ -61,7 +61,7 @@ class FruitsVGG:
                                                     is_train=True,
                                                     is_color=True)
         # 归一化
-        img = img.astype("float32") / 255
+        img = img.flatten().astype("float32") / 255
         return img
 
     # 搭建paddle图片文件读取器
@@ -89,10 +89,77 @@ class FruitsVGG:
         return batch_reader
 
     # 搭建vgg网络模型
-    def vgg_model(self, img):
+    def vgg_model(self, img, type_size):
         """"""
 
+        # 卷积池化组
+        def conv_pool(ipt, num_filter, groups, dropouts):
+            return fluid.nets.img_conv_group(input=ipt,
+                                             conv_filter_size=3,  # 卷积核大小
+                                             conv_num_filter=[num_filter] * groups,  # 卷积核数量
+                                             pool_size=2,
+                                             pool_stride=2,
+                                             conv_act="relu",
+                                             conv_with_batchnorm=True,
+                                             conv_batchnorm_drop_rate=dropouts,
+                                             pool_type="max")  # 池化类型
 
+        # 五个卷积池化组
+        conv1 = conv_pool(img, num_filter=64, groups=2, dropouts=[0.0, 0])
+        conv2 = conv_pool(conv1, num_filter=128, groups=2, dropouts=[0.0, 0])
+        conv3 = conv_pool(conv2, num_filter=256, groups=3, dropouts=[0.0, 0.0, 0])
+        conv4 = conv_pool(conv3, num_filter=512, groups=3, dropouts=[0.0, 0.0, 0])
+        conv5 = conv_pool(conv4, num_filter=512, groups=3, dropouts=[0.0, 0.0, 0])
+        # drop
+        drop = fluid.layers.dropout(x=conv5, dropout_prob=0.2)
+        # fc
+        fc1 = fluid.layers.fc(drop, size=512, act=None)
+        bn = fluid.layers.batch_norm(input=fc1, act="relu")
+        drop1 = fluid.layers.dropout(x=bn, dropout_prob=0.2)
+        fc2 = fluid.layers.fc(input=drop1, size=512, act=None)
+        predict = fluid.layers.fc(input=fc2, size=type_size, act="softmax")
+        return predict
+
+    # 训练模型
+    def train_model(self):
+        """"""
+        image = fluid.layers.data(name="x", shape=[3, 100, 100], dtype="float32")
+        label = fluid.layers.data(name="y", shape=[1], dtype="int64")
+        predict = self.vgg_model(img=image, type_size=5)
+        cost = fluid.layers.cross_entropy(input=label,
+                                          label=predict)
+        avg_cost = fluid.layers.mean(cost)
+        # 准确率
+        accuracy = fluid.layers.accuracy(input=predict,
+                                         label=label)
+        # 优化器
+        optimizer = fluid.optimizer.Adam(learning_rate=0.00001)
+        optimizer.minimize()
+        # 执行
+        place = fluid.CPUPlace()
+        exe = fluid.Executor(place)
+        exe.run(program=fluid.default_startup_program())
+        feeder = fluid.DataFeeder(feed_list=[image, label], place=place)
+
+        # 加载增量模型
+        persis_model_dir = "persis_model"
+        if os.path.exists(persis_model_dir):
+            fluid.io.load_persistables(exe, persis_model_dir, fluid.default_main_program())
+
+        for epoch in range(100):
+            for batch_id, data in enumerate(self.paddle_img_reader()):
+                train_cost, train_acc = exe.run(program=fluid.default_main_program(),
+                                                feed=feeder.feed(data),
+                                                fetch_list=[avg_cost, accuracy])
+                if batch_id%20 ==0:
+                    print(f"epoch:{epoch},batchId:{batch_id},cost:{train_cost},acc:{train_acc}")
+
+    def fetch_img_list(self):
+        """"""
+        with open(self.image_file_path,"r") as r:
+            for j in [i.strip() for i in r.readlines()]:
+                img_path,label = j.split("\t")
+                yield img_path,label
     # 程序入口
     def start(self):
         """
@@ -100,7 +167,8 @@ class FruitsVGG:
         :return:
         """
         self.deal_image()
-
+        for img_path,label in self.fetch_img_list():
+            self.reader_image(img_path)
 
 
 if __name__ == '__main__':
