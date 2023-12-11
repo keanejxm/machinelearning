@@ -68,7 +68,7 @@ class FruitsVGG:
     def paddle_img_reader(self):
         """"""
 
-        def paddle_reader(img_path, buffered_size=1024):
+        def paddle_reader(buffered_size=1024):
             def reader():
                 with open(self.image_file_path, "r") as r:
                     for img_line in [i.strip() for i in r.readlines()]:
