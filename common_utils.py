@@ -7,3 +7,4 @@
 :desc  
 """
 DATA_PATH = r"E:\keane_data\data_test"
+print(DATA_PATH)
