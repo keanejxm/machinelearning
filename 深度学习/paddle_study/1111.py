@@ -52,6 +52,7 @@ def train_r(train_list, buffered_size=1024):
 
 # 准备数据
 BATCH_SIZE = 32  # 批次大小
+train_file_path = f"./fruits/fruit.txt"
 train_reader = train_r(train_list=train_file_path) # 构建读取器
 shuffle_reader = paddle.reader.shuffle(reader=train_reader,
                                        buf_size=1300)
@@ -109,8 +110,8 @@ optimizer = fluid.optimizer.Adam(learning_rate=0.000001) # 自适应梯度下降
 optimizer.minimize(avg_cost)
 
 # 执行器
-# place = fluid.CPUPlace() # 如果不能使用GPU，则写这一句
-place = fluid.CUDAPlace(0) # 如果可以使用GPU，则写这一句
+place = fluid.CPUPlace() # 如果不能使用GPU，则写这一句
+# place = fluid.CUDAPlace(0) # 如果可以使用GPU，则写这一句
 exe = fluid.Executor(place) # 执行器
 exe.run(fluid.default_startup_program()) # 初始化
 # 定义feeder

@@ -7,13 +7,20 @@
 :desc  vgg卷积神经网络
 """
 import os
+
+import numpy as np
 import paddle
 import paddle.fluid as fluid
 from multiprocessing import cpu_count
 
 from common_utils import *
 
-
+"""
+1、答疑：
+    在喂入数据给模型时，feeder.feed(data)接收的data实际上是一个元组（tuple），其中包含了图像数据和对应的标签。而这个图像数据已经被处理为
+    一维数组，但是模型期望接收的是三维数组。在feeder中，PaddlePaddle会根据feed_list中定义的输入变量要求，将数据进行重塑以匹配模型的输入
+    形状。因此，尽管最初的数据是一维的，但在喂入模型时会被正确地转换成了模型期望的三维形状。
+"""
 # 读取数据、处理数据
 
 class FruitsVGG:
@@ -50,8 +57,9 @@ class FruitsVGG:
 
     # paddle图片读取器
     @staticmethod
-    def reader_image(image_path):
+    def reader_image(image_info):
         """"""
+        image_path, label = image_info
         # 读取图片
         img = paddle.dataset.image.load_image(image_path, is_color=True)
         # 简单处理图片
@@ -62,15 +70,15 @@ class FruitsVGG:
                                                     is_color=True)
         # 归一化
         img = img.flatten().astype("float32") / 255
-        return img
+        return img, label
 
     # 搭建paddle图片文件读取器
     def paddle_img_reader(self):
         """"""
 
-        def paddle_reader(buffered_size=1024):
+        def paddle_reader(image_path, buffered_size=1024):
             def reader():
-                with open(self.image_file_path, "r") as r:
+                with open(image_path, "r") as r:
                     for img_line in [i.strip() for i in r.readlines()]:
                         img_path, img_label = img_line.split("\t")
                         yield img_path, img_label
@@ -80,16 +88,18 @@ class FruitsVGG:
                                               process_num=cpu_count(),
                                               buffer_size=buffered_size)
 
+        reader = paddle_reader(self.image_file_path)
         # 随机读取
-        shuffle_reader = paddle.reader.shuffle(paddle_reader,
+        shuffle_reader = paddle.reader.shuffle(reader,
                                                buf_size=1300)
         # 分批次读取
         batch_reader = paddle.batch(shuffle_reader,
                                     batch_size=32)
-        return batch_reader
+        return batch_reader()
 
     # 搭建vgg网络模型
-    def vgg_model(self, img, type_size):
+    @staticmethod
+    def vgg_model(img, type_size):
         """"""
 
         # 卷积池化组
@@ -123,18 +133,18 @@ class FruitsVGG:
     # 训练模型
     def train_model(self):
         """"""
-        image = fluid.layers.data(name="x", shape=[3, 100, 100], dtype="float32")
-        label = fluid.layers.data(name="y", shape=[1], dtype="int64")
+        image = fluid.layers.data(name="image", shape=[3, 100, 100], dtype="float32")
+        label = fluid.layers.data(name="label", shape=[1], dtype="int64")
         predict = self.vgg_model(img=image, type_size=5)
-        cost = fluid.layers.cross_entropy(input=label,
-                                          label=predict)
+        cost = fluid.layers.cross_entropy(input=predict,
+                                          label=label)
         avg_cost = fluid.layers.mean(cost)
         # 准确率
         accuracy = fluid.layers.accuracy(input=predict,
                                          label=label)
         # 优化器
         optimizer = fluid.optimizer.Adam(learning_rate=0.00001)
-        optimizer.minimize()
+        optimizer.minimize(avg_cost)
         # 执行
         place = fluid.CPUPlace()
         exe = fluid.Executor(place)
@@ -142,24 +152,56 @@ class FruitsVGG:
         feeder = fluid.DataFeeder(feed_list=[image, label], place=place)
 
         # 加载增量模型
-        persis_model_dir = "persis_model"
+        persis_model_dir = "../model/persis_model/fruits_vgg/"
         if os.path.exists(persis_model_dir):
             fluid.io.load_persistables(exe, persis_model_dir, fluid.default_main_program())
 
-        for epoch in range(100):
+        for epoch in range(1):
             for batch_id, data in enumerate(self.paddle_img_reader()):
                 train_cost, train_acc = exe.run(program=fluid.default_main_program(),
                                                 feed=feeder.feed(data),
                                                 fetch_list=[avg_cost, accuracy])
-                if batch_id%20 ==0:
+                if batch_id % 20 == 0:
                     print(f"epoch:{epoch},batchId:{batch_id},cost:{train_cost},acc:{train_acc}")
+        # 保存增量模型
+        if not os.path.exists(persis_model_dir):
+            os.makedirs(persis_model_dir)
+        fluid.io.save_persistables(executor=exe, dirname=persis_model_dir, main_program=fluid.default_main_program())
 
-    def fetch_img_list(self):
+        # 保存预测模型
+        model_save_dir = "../model/inference_model/fruits_vgg/"
+        if not os.path.exists(model_save_dir):
+            os.makedirs(model_save_dir)
+        fluid.io.save_inference_model(dirname=model_save_dir, feeded_var_names=["image"], target_vars=[predict],
+                                      executor=exe)
+        print("模型保存完成")
+
+    def predict_result(self):
         """"""
-        with open(self.image_file_path,"r") as r:
-            for j in [i.strip() for i in r.readlines()]:
-                img_path,label = j.split("\t")
-                yield img_path,label
+        place = fluid.CPUPlace()
+        exe = fluid.Executor(place)
+        exe.run(program=fluid.default_startup_program())
+        model_save_dir = "../model/inference_model/fruits_vgg/"
+        # 加载模型
+        if os.path.exists(model_save_dir):
+            # 加载模型
+            infer_prog, feed_var, target_var = fluid.io.load_inference_model(dirname=model_save_dir, executor=exe)
+            # 读取预测数据
+            image_path = "1111.png"
+            img = paddle.dataset.image.load_and_transform(image_path, resize_size=100, crop_size=100, is_train=False)
+            img = img.astype("float32") / 255
+            imgs = [img]
+            img = np.array(imgs)
+            res = exe.run(program=infer_prog, feed={feed_var[0]: img}, fetch_list=[target_var])
+            # 获取最大概率的索引
+            res_max = np.argmax(res[0][0])
+            for fruit, i in self.name_dict.items():
+                if i == res_max:
+                    print(fruit)
+            # print(self.name_dict[""])
+        else:
+            print("未查询到对应模型")
+
     # 程序入口
     def start(self):
         """
@@ -167,8 +209,10 @@ class FruitsVGG:
         :return:
         """
         self.deal_image()
-        for img_path,label in self.fetch_img_list():
-            self.reader_image(img_path)
+        # for img_path,label in self.fetch_img_list():
+        #     self.reader_image(img_path)
+        self.train_model()
+        # self.predict_result()
 
 
 if __name__ == '__main__':
