@@ -1,6 +1,0 @@
-#!/bin/sh
-# call all .git/hooks/pre-commit scripts (bash and python)
-
-source src/nlpia/scripts/pre-commit.sh
-
-# python src/nlpia/scripts/countpages.py manuscript
