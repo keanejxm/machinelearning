@@ -18,7 +18,7 @@ from common_utils import *
 
 # 算法；准备数据、构建模型、训练模型
 
-class LsLmYolo3:
+class DealData:
     def __init__(self):
         self._filepath = DATA_PATH
         self._train_path = f"{self._filepath}/lslm"
@@ -142,7 +142,7 @@ class LsLmYolo3:
         for i in range(c):
             # todo:数据增强使用的灰度值"mean_rgb": [127.5, 127.5, 127.5],  # 数据增强使用的灰度值
             out_img[:, :, i] = mean_rgb[i]
-        out_img[off_y:off_y + h, off_x, off_x + w, :] = img
+        out_img[off_y:off_y + h, off_x:off_x + w, :] = img
         gtboxes[:, 0] = ((gtboxes[:, 0] * w) + off_x) / float(ow)
         gtboxes[:, 1] = ((gtboxes[:, 1] * h) + off_y) / float(oh)
         gtboxes[:, 2] = gtboxes[:, 2] / ratio_x
@@ -292,7 +292,7 @@ class LsLmYolo3:
                 bbox_sample = []
                 bbox_json = json.loads(bbox_str)
                 bbox_sample.append(float(label_params[bbox_json["value"]]))
-                bbox = bbox_json["coordinate"]# [[769.459, 241.819], [947.546, 506.167]] 0：框左上角坐标，1：框右下角坐标
+                bbox = bbox_json["coordinate"]  # [[769.459, 241.819], [947.546, 506.167]] 0：框左上角坐标，1：框右下角坐标
                 # 计算x,y,w,h
                 box = [bbox[0][0], bbox[0][1], bbox[0][1] - bbox[0][0], bbox[1][1] - bbox[0][1]]
                 # 转换
@@ -314,7 +314,7 @@ class LsLmYolo3:
             boxes = sample_labels[:, 1:5]  # 坐标
             lbls = sample_labels[:, 0].astype('int32')  # 标签
             difficults = sample_labels[:, -1].astype('int32')
-            max_box_num = 20 # 一副图像最多多少个目标物体
+            max_box_num = 20  # 一副图像最多多少个目标物体
             cope_size = max_box_num if len(boxes) >= max_box_num else len(boxes)  # 控制最大目标数量
             ret_boxes = np.zeros((max_box_num, 4), dtype=np.float32)
             ret_lbls = np.zeros((max_box_num), dtype=np.int32)
@@ -323,9 +323,11 @@ class LsLmYolo3:
             ret_lbls[0: cope_size] = lbls[0: cope_size]
             ret_difficults[0: cope_size] = difficults[0: cope_size]
 
-            # yield img, ret_boxes, ret_lbls
+            yield img, ret_boxes, ret_lbls
 
-            # 训练模型
+
+
+    # 训练模型
     def train_model(self):
         # 图像
         img = fluid.layers.data(name="img", shape=[], dtype="float32")
@@ -339,5 +341,5 @@ class LsLmYolo3:
 
 
 if __name__ == '__main__':
-    obj = LsLmYolo3()
+    obj = DealData()
     obj.start()
