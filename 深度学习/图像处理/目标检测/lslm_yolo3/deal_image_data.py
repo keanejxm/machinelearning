@@ -324,22 +324,3 @@ class DealData:
             ret_difficults[0: cope_size] = difficults[0: cope_size]
 
             yield img, ret_boxes, ret_lbls
-
-
-
-    # 训练模型
-    def train_model(self):
-        # 图像
-        img = fluid.layers.data(name="img", shape=[], dtype="float32")
-        # 边框
-        gt_box = fluid.layers.data(name="gt_box", shape=[], dtype="float32")
-        # 标签
-        gt_label = fluid.layers.data(name="gt_label", shape=[], dtype="int32")
-
-    def start(self):
-        self.read_img()
-
-
-if __name__ == '__main__':
-    obj = DealData()
-    obj.start()
