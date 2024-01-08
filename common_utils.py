@@ -6,5 +6,12 @@
 :time  2023/12/1 9:33
 :desc  
 """
-DATA_PATH = r"E:\keane_data\data_test"
+import os
+
+data_path_1 = r"E:\keane_data\data_test"
+
+if os.path.exists(data_path_1):
+    DATA_PATH = data_path_1
+else:
+    DATA_PATH = r"D:\keane_data"
 print(DATA_PATH)
