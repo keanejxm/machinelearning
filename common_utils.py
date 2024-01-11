@@ -8,7 +8,7 @@
 """
 import os
 
-data_path_1 = r"E:\keane_data\data_test"
+data_path_1 = r"E:\keane_data"
 
 if os.path.exists(data_path_1):
     DATA_PATH = data_path_1
