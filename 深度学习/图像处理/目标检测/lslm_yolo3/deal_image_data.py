@@ -21,8 +21,8 @@ from common_utils import *
 class DealData:
     def __init__(self):
         self._filepath = DATA_PATH
-        self._train_path = f"{self._filepath}/lslm"
-        self._testpath = f"{self._filepath}/lslm-test"
+        self._train_path = f"{self._filepath}/data_test/lslm"
+        self._testpath = f"{self._filepath}/data_test/lslm-test"
 
     # ------------------------------------------准备数据----------------------------------------------------
 
@@ -44,7 +44,7 @@ class DealData:
     @staticmethod
     def box_to_center_relative(box, img_height, img_width):
         """
-        坐标转换
+        坐标转换，转换为[center_x,center_y,w,h],并转为为范围在[0,1]之间的相对坐标
         :param box:
         :param img_height:
         :param img_width:
@@ -294,7 +294,7 @@ class DealData:
                 bbox_sample.append(float(label_params[bbox_json["value"]]))
                 bbox = bbox_json["coordinate"]  # [[769.459, 241.819], [947.546, 506.167]] 0：框左上角坐标，1：框右下角坐标
                 # 计算x,y,w,h
-                box = [bbox[0][0], bbox[0][1], bbox[0][1] - bbox[0][0], bbox[1][1] - bbox[0][1]]
+                box = [bbox[0][0], bbox[0][1], bbox[1][0] - bbox[0][0], bbox[1][1] - bbox[0][1]]
                 # 转换
                 bbox = self.box_to_center_relative(box, img_height=img_height, img_width=img_width)
                 bbox_sample.append(float(bbox[0]))
@@ -324,3 +324,9 @@ class DealData:
             ret_difficults[0: cope_size] = difficults[0: cope_size]
 
             yield img, ret_boxes, ret_lbls
+
+
+if __name__ == '__main__':
+    deal_data_obj = DealData()
+    for i in deal_data_obj.read_img():
+        print(i)
