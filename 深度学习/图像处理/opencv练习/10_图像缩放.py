@@ -21,7 +21,7 @@ cv2.imshow("reduce",reduce)
 dst_size = (w*2,h*2)
 # 最邻近插值法
 near = cv2.resize(img,
-                  dst_size,
+                  dst_size,#目标尺寸
                   interpolation=cv2.INTER_NEAREST)
 cv2.imshow("near",near)
 

@@ -17,8 +17,8 @@ cv2.imshow("img", img)
 # sobel梯度算子 一阶梯度
 sobel = cv2.Sobel(img,
                   cv2.CV_64F,
-                  1,
-                  1,
+                  1,#水平方向上的到导数
+                  1,# 数值方向的导数1:1阶导数
                   ksize=5)
 cv2.imshow("sobel", sobel)
 

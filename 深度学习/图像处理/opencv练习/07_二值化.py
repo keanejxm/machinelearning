@@ -21,5 +21,10 @@ t, binary = cv2.threshold(gray,  # 灰度图像
                           255,  # 大于阈值转为255
                           cv2.THRESH_BINARY)  # 二值化
 cv2.imshow("binary", binary)
+# 反二值化
+# t,binary = cv2.threshold(gray,
+#                          127,
+#                          255,
+#                          cv2.THRESH_BINARY_INV)# 反二值化
 
 cv2.waitKey()

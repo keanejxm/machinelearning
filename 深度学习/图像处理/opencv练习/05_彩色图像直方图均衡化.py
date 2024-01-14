@@ -18,6 +18,6 @@ yuv[:,:,0] = cv2.equalizeHist(yuv[:,:,0])
 
 # YUV----->BGR
 res = cv2.cvtColor(yuv,cv2.COLOR_YUV2BGR)
-cv2.imshow("res",res)
+cv2.imshow("res",res)#只能显示bgr
 
 cv2.waitKey()

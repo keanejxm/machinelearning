@@ -25,7 +25,7 @@ def translate(img, x, y):
                     [0, 1, y]])
     res = cv2.warpAffine(img,
                          m,
-                         (w, h))
+                         (w, h))# 输出尺寸
     return res
 
 
