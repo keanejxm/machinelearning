@@ -181,13 +181,17 @@ class DealData:
         im_w, im_h = map(float, img_shape)
 
         boxes = boxes.copy()
+        # [center_x,center_y,w,h]--->[x1,y1,x2,y2]
         boxes[:, 0], boxes[:, 2] = (boxes[:, 0] - boxes[:, 2] / 2) * im_w, (boxes[:, 0] + boxes[:, 2] / 2) * im_w
         boxes[:, 1], boxes[:, 3] = (boxes[:, 1] - boxes[:, 3] / 2) * im_h, (boxes[:, 1] + boxes[:, 3] / 2) * im_h
 
         crop_box = np.array([x, y, x + w, y + h])
         centers = (boxes[:, :2] + boxes[:, 2:]) / 2.0
         mask = np.logical_and(crop_box[:2] <= centers, centers <= crop_box[2:]).all(axis=1)
-
+        a1 = boxes[:,:2]
+        a2 = crop_box[:2]
+        b1 = boxes[:,2:]
+        b2 = crop_box[2:]
         boxes[:, :2] = np.maximum(boxes[:, :2], crop_box[:2])
         boxes[:, 2:] = np.minimum(boxes[:, 2:], crop_box[2:])
         boxes[:, :2] -= crop_box[:2]
