@@ -97,3 +97,6 @@ ary = np.array(data, dtype={"names": ["name", "score", "age"],
                             "formats": ["3str", "3int32", "int32"]})
 print(ary)
 print(ary["score"])
+
+# 从一个均匀分布的区域中随机采样
+print(np.random.uniform(0, 1))
