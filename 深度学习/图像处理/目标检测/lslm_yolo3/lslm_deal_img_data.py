@@ -295,6 +295,7 @@ class DealImgData:
 
         mask = np.logical_and(mask, (boxes[:, :2] < boxes[:, 2:]).all(axis=1))
         boxes = boxes * np.expand_dims(mask.astype("float32"), axis=1)
+        labels = np.array(labels, dtype=np.float32)
         labels = labels * mask.astype("float32")
 
         boxes[:, 0], boxes[:, 2] = (boxes[:, 0] + boxes[:, 2]) / 2 / w, (boxes[:, 2] - boxes[:, 0]) / w
@@ -406,7 +407,17 @@ class DealImgData:
             img, boxes = OperateImg.random_expand(img, boxes, prob_expand=prob_expand, max_ratio=max_ratio)
             # 随机剪裁
             img, boxes, labels = OperateImg.random_crop(img, boxes, box_labels, prob_expand)
-            print(img)
+            img.show()
+            # 重置image大小，双线性插值法
+            img = img.resize((self.img_param["inputSize"][1], self.img_param["inputSize"][2]), Image.BILINEAR)
+            img.show()
+            # 转为ndarray
+            img = np.array(img).astype("float32")
+            img -= [127.5, 127.5, 127.5]
+            img = img.transpose((2,0,1))# HWC TO CHW
+            img *= 0.007843
+
+            return img, boxes, labels
 
     def read_img(self):
         """
@@ -420,8 +431,6 @@ class DealImgData:
             img_boxes = img_info_list[1:]
             img = Image.open(os.path.join(self.train_path, img_name))
             img = img if img.mode == "RGB" else img.convert("RGB")
-            img_width = img.width
-            img_height = img.height
             self.img_process(img_boxes, img, "train")
             # 处理图片中螺丝螺母的坐标信息
             # for img_boxes, box_class in self.deal_box(img_info_list[1:], img_width, img_height):
