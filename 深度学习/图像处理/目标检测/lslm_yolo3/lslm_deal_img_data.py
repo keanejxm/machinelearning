@@ -371,7 +371,7 @@ class DealImgData:
             img_box_json = json.loads(img_box)
             box_label = self.label_param[img_box_json["value"]]
             box_coordinate = img_box_json["coordinate"]
-            # 处理坐标数据[左上角，右下角]
+            # 处理坐标数据[左上角，右下角]二维数据转为1维数据
             box_x1, box_y1, box_x2, box_y2 \
                 = box_coordinate[0][0], box_coordinate[0][1], box_coordinate[1][0], box_coordinate[1][1]
             boxes.append([box_x1, box_y1, box_x2, box_y2])
