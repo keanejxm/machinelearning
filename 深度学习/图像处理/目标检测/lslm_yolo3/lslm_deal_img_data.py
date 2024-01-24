@@ -7,7 +7,6 @@
 :desc  螺丝螺母处理图片数据
 """
 import json
-import os
 import random
 import numpy as np
 from PIL import Image, ImageEnhance
@@ -163,14 +162,18 @@ class OperateImg:
     def random_crop(img, boxes, labels, prob_crop, scales=None, max_ratio=2.0, constraints=None,
                     max_trial=50):
         """
-
         :param img:
         :param boxes: 目标检测框出目标的框[[x1,y1,x2,y2],[x1,y1,x2,y2]]
+        :param labels:
         :param prob_crop:
+        :param scales:
+        :param max_ratio:
+        :param constraints:
+        :param max_trial:
         :return:
         """
         prob = np.random.uniform(0, 1)
-        if scales == None:
+        if scales is None:
             scales = [0.3, 1.0]
         if prob < prob_crop:
             return img, boxes, labels
@@ -189,24 +192,22 @@ class OperateImg:
             for _ in range(max_trial):
                 scale = np.random.uniform(scales[0], scales[1])
                 aspect_ratio = np.random.uniform(max(1 / max_iou, scale * scale), min(max_ratio, 1 / scale / scale))
+                # 剪切后的高和宽
                 crop_h = int(h * scale / np.sqrt(aspect_ratio))
                 crop_w = int(w * scale * np.sqrt(aspect_ratio))
+                # 剪切后x,y开始坐标
                 crop_x = random.randrange(w - crop_w)
                 crop_y = random.randrange(h - crop_h)
-                # [center_x,center_y,w,h]
-                # crop_box = np.array([[crop_x + crop_w / 2.0],
-                #                      [crop_y + crop_h / 2.0],
-                #                      [crop_w],
-                #                      [crop_h]
-                #                      ])
+                # 剪切后的图片
                 crop_box = np.array([[crop_x, crop_y, crop_x + crop_w, crop_y + crop_h]])
                 iou = BoxIou.iou_xyxy(crop_box, boxes)
+                # 通过iou(交并比)判断切割后的图片中是否有检测（螺丝螺母）数据
                 if min_iou <= iou.min() and max_iou >= iou.max():
-                    crops.append((crop_x, crop_y, crop_w, crop_h))
+                    crops.append((crop_x, crop_y, crop_x + crop_w, crop_y + crop_h))
                     break
         while crops:
             crop = crops.pop(np.random.randint(0, len(crops)))
-            crop_boxes, crop_labels, boxes_num = DealImgData.crop_box_xyxy(boxes, labels, crop, (w, h))
+            crop_boxes, crop_labels, boxes_num = DealImgData.crop_box_xyxy(boxes, labels, crop)
             if boxes_num < 1:
                 continue
             img = img.crop((crop[0], crop[1], crop[2], crop[3])).resize(img.size, Image.LANCZOS)
@@ -231,6 +232,7 @@ class DealImgData:
         return {
             "inputSize": [3, 448, 448],  # 网络输入图片大小
             "isDistort": True,  # 是否扭曲
+            "maxBoxNum": 20,
             "distortParam": {
                 "bright": {"prob": 0.5, "delta": 0.125},
                 "saturation": {"prob": 0.5, "delta": 0.5},
@@ -265,13 +267,12 @@ class DealImgData:
                 yield img_info_list
 
     @staticmethod
-    def crop_box_xyxy(boxes, labels, crop, img_shape):
+    def crop_box_xyxy(boxes, labels, crop):
         """
         切哥割盒子
         :param boxes:
         :param labels:
         :param crop: [c_x,c_y,w,h]# 切割的图片大小
-        :param img_shape:
         :return:
         """
         x1, y1, x2, y2 = map(float, crop)
@@ -284,12 +285,13 @@ class DealImgData:
         crop_box = np.array([x1, y1, x2, y2])
         # (x1,y1 +x2,y2)/2 坐标平均值
         centers = (boxes[:, :2] + boxes[:, 2:]) / 2
-        # 判断平均值是否在剪切的box（x1,y1）到（x2,y2）之间
+        # 判断每个box的中心点是否在剪切的图片中
         mask = np.logical_and(crop_box[:2] <= centers, centers <= crop_box[2:]).all(axis=1)
 
         # 找到切割后的框的坐标
         boxes[:, :2] = np.maximum(boxes[:, :2], crop_box[:2])
         boxes[:, 2:] = np.minimum(boxes[:, 2:], crop_box[2:])
+        # 盒子减去切割后图片的x,y坐标，就是盒子在切割的图片内的坐标
         boxes[:, :2] -= crop_box[:2]
         boxes[:, 2:] -= crop_box[:2]
 
@@ -300,6 +302,7 @@ class DealImgData:
 
         boxes[:, 0], boxes[:, 2] = (boxes[:, 0] + boxes[:, 2]) / 2 / w, (boxes[:, 2] - boxes[:, 0]) / w
         boxes[:, 1], boxes[:, 3] = (boxes[:, 1] + boxes[:, 3]) / 2 / h, (boxes[:, 3] - boxes[:, 1]) / h
+        # 返回的box格式为归一化的（x,y,w,h）
         return boxes, labels, mask.sum()
 
     @staticmethod
@@ -339,6 +342,7 @@ class DealImgData:
 
         boxes[:, 0], boxes[:, 2] = (boxes[:, 0] + boxes[:, 2]) / 2 / w, (boxes[:, 2] - boxes[:, 0]) / w
         boxes[:, 1], boxes[:, 3] = (boxes[:, 1] + boxes[:, 3]) / 2 / h, (boxes[:, 3] - boxes[:, 1]) / h
+        # 返回的box格式为归一化的（x,y,w,h）
         return boxes, labels, mask.sum()
 
     def deal_box(self, img_boxes, img_width, img_height):
@@ -406,20 +410,19 @@ class DealImgData:
             max_ratio = self.img_param["expandParam"]["maxRatio"]
             img, boxes = OperateImg.random_expand(img, boxes, prob_expand=prob_expand, max_ratio=max_ratio)
             # 随机剪裁
-            img, boxes, labels = OperateImg.random_crop(img, boxes, box_labels, prob_expand)
-            img.show()
-            # 重置image大小，双线性插值法
-            img = img.resize((self.img_param["inputSize"][1], self.img_param["inputSize"][2]), Image.BILINEAR)
-            img.show()
-            # 转为ndarray
-            img = np.array(img).astype("float32")
-            img -= [127.5, 127.5, 127.5]
-            img = img.transpose((2,0,1))# HWC TO CHW
-            img *= 0.007843
+            img, boxes, box_labels = OperateImg.random_crop(img, boxes, box_labels, prob_expand)
+        # 重置image大小，双线性插值法
+        img = img.resize((self.img_param["inputSize"][1], self.img_param["inputSize"][2]), Image.BILINEAR)
+        # 转为ndarray
+        img = np.array(img).astype("float32")
+        # 图片归一化
+        img -= [127.5, 127.5, 127.5]
+        img = img.transpose((2, 0, 1))  # HWC-->高宽维度 TO CHW维度高宽
+        img *= 0.007843
 
-            return img, boxes, labels
+        return img, boxes, box_labels
 
-    def read_img(self):
+    def read_img(self, mode):
         """
         1、读取画框后的图片信息
         2、读取图片信息
@@ -429,14 +432,30 @@ class DealImgData:
         for img_info_list in self.read_img_pos():
             img_name = img_info_list[0]
             img_boxes = img_info_list[1:]
-            img = Image.open(os.path.join(self.train_path, img_name))
-            img = img if img.mode == "RGB" else img.convert("RGB")
-            self.img_process(img_boxes, img, "train")
-            # 处理图片中螺丝螺母的坐标信息
-            # for img_boxes, box_class in self.deal_box(img_info_list[1:], img_width, img_height):
-            #     print(img_boxes)
+            if mode == "train" or mode == "eval":
+                img = Image.open(os.path.join(self.train_path, img_name))
+                img = img if img.mode == "RGB" else img.convert("RGB")
+                img, boxes, labels = self.img_process(img_boxes, img, "train")
+                # 处理图片中螺丝螺母的坐标信息
+                # for img_boxes, box_class in self.deal_box(img_info_list[1:], img_width, img_height):
+                #     print(img_boxes)
+                if len(labels) == 0:
+                    continue
+                different = np.zeros(labels.shape).astype("int32")
+                max_box_num = self.img_param['maxBoxNum']  # 一副图像最多多少个目标物体
+                cope_size = max_box_num if len(boxes) >= max_box_num else len(boxes)  # 控制最大目标数量
+                ret_boxes = np.zeros((max_box_num, 4), dtype=np.float32)
+                ret_labels = np.zeros((max_box_num), dtype=np.int32)
+                ret_difficults = np.zeros((max_box_num), dtype=np.int32)
+                ret_boxes[0: cope_size] = boxes[0: cope_size]
+                ret_labels[0: cope_size] = labels[0: cope_size]
+                ret_difficults[0: cope_size] = different[0: cope_size]
+                yield img, ret_boxes, ret_labels
+            else:
+                img_path = os.path.join(self.train_path, img_name)
+                yield Image.open(img_path)
 
 
 if __name__ == '__main__':
     obj = DealImgData()
-    obj.read_img()
+    obj.read_img('train')
