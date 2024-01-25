@@ -132,7 +132,20 @@ class FruitsVGG:
 
     # 训练模型
     def train_model(self):
-        """"""
+        """
+        步骤：
+            1、定义变量
+            2、将变量代入模型
+            3、计算损失函数
+            4、定义优化器
+            5、定义执行器
+            6、定义数据喂入
+            7、加载增量模型
+            8、训练
+            9、保存增量训练模型
+            10、保存预测模型
+        :return:
+        """
         image = fluid.layers.data(name="image", shape=[3, 100, 100], dtype="float32")
         label = fluid.layers.data(name="label", shape=[1], dtype="int64")
         predict = self.vgg_model(img=image, type_size=5)

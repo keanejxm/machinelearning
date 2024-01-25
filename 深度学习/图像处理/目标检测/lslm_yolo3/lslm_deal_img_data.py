@@ -225,11 +225,15 @@ class DealImgData:
         self.test_path = f"{DATA_PATH}/data_test/lslm-test"
         self.img_pos_path = f"{self.train_path}/train.txt"
         self.label_path = f"{self.train_path}/label_list.txt"
-        self.label_param = self.label_params()
+        self.img_param["numDict"] = self.label_params()
+        self.img_param["classDim"] = len(self.label_params())
+        self.file_list()
+
 
     @staticmethod
     def img_params():
         return {
+            "useGPU": False,
             "inputSize": [3, 448, 448],  # 网络输入图片大小
             "isDistort": True,  # 是否扭曲
             "maxBoxNum": 20,
@@ -239,7 +243,28 @@ class DealImgData:
                 "contrast": {"prob": 0.5, "delta": 0.5},
                 "hue": {"prob": 0.5, "delta": 0.5},
             },  # 图片扭曲参数
-            "expandParam": {"prob": 0.5, "maxRatio": 4}
+            "expandParam": {"prob": 0.5, "maxRatio": 4},
+            "anchors": [7, 10, 12, 22, 24, 17, 22, 45, 46, 33, 43, 88, 85, 66, 115, 146, 275, 240],  # 锚点??
+            "anchorMask": [[6, 7, 8], [3, 4, 5], [0, 1, 2]],  # Anchor Box序号
+            "classDim": -1,  # 类别数量（初始化的时候设置）
+            "imgCount": -1,  # 训练集图片数量
+            "saveModelDir": "./model/persis_model",  # 增量模型保存目录
+            "pretrainedModelDir": "./model/pretrained_model",  # 预训练模型保存目录
+            "inferenceModelDir": "./model/inference_model",  # 预测模型路径
+            # "numEpochs": 80,
+            "numEpochs": 1,
+            "validThresh": 0.01,
+            "nmsTopK": 300,
+            "nmsPosK": 300,
+            "nmsThresh": 0.45,  # 非最大值抑制阈值
+            "numDict": {},  # 数字-名称对应字典
+            "sgdStrategy": {  # 梯度下降配置
+                "learningRate": 0.002,
+                "lrEpochs": [30, 50, 65],  # 学习率衰减分段（3个数字分为4段）
+                "lrDecay": [1, 0.5, 0.25, 0.1]  # 每段采用的学习率，对应lr_epochs参数4段
+            },
+            # "trainBatchSize": 32,  # 对于完整yolov3，每一批的训练样本不能太多，内存会炸掉；如果使用tiny，可以适当大一些
+            "trainBatchSize": 2,  # 对于完整yolov3，每一批的训练样本不能太多，内存会炸掉；如果使用tiny，可以适当大一些
         }
 
     def label_params(self):
@@ -254,6 +279,11 @@ class DealImgData:
                 label_info = label_str.split(" ")
                 label_dict[label_info[1]] = label_info[0]
         return label_dict
+
+    def file_list(self):
+        with open(self.img_pos_path, "r") as r:
+            img_infos = [i.strip() for i in r.readlines()]
+            self.img_param["imgCount"] = len(img_infos)
 
     def read_img_pos(self):
         """
@@ -355,7 +385,7 @@ class DealImgData:
         """
         for img_box in img_boxes:
             img_box_json = json.loads(img_box)
-            box_class = self.label_param[img_box_json["value"]]
+            box_class = self.img_param["numDict"][img_box_json["value"]]
             box_coordinate = img_box_json["coordinate"]
             # 处理坐标数据[左上角，右下角]，[中心点x，中心点y，宽，高]
             w = box_coordinate[1][0] - box_coordinate[0][0]
@@ -373,7 +403,7 @@ class DealImgData:
         box_labels = list()
         for img_box in img_boxes:
             img_box_json = json.loads(img_box)
-            box_label = self.label_param[img_box_json["value"]]
+            box_label = self.img_param["numDict"][img_box_json["value"]]
             box_coordinate = img_box_json["coordinate"]
             # 处理坐标数据[左上角，右下角]二维数据转为1维数据
             box_x1, box_y1, box_x2, box_y2 \
@@ -436,12 +466,9 @@ class DealImgData:
                 img = Image.open(os.path.join(self.train_path, img_name))
                 img = img if img.mode == "RGB" else img.convert("RGB")
                 img, boxes, labels = self.img_process(img_boxes, img, "train")
-                # 处理图片中螺丝螺母的坐标信息
-                # for img_boxes, box_class in self.deal_box(img_info_list[1:], img_width, img_height):
-                #     print(img_boxes)
                 if len(labels) == 0:
                     continue
-                different = np.zeros(labels.shape).astype("int32")
+                # different = np.zeros(labels.shape).astype("int32")
                 max_box_num = self.img_param['maxBoxNum']  # 一副图像最多多少个目标物体
                 cope_size = max_box_num if len(boxes) >= max_box_num else len(boxes)  # 控制最大目标数量
                 ret_boxes = np.zeros((max_box_num, 4), dtype=np.float32)
@@ -449,7 +476,7 @@ class DealImgData:
                 ret_difficults = np.zeros((max_box_num), dtype=np.int32)
                 ret_boxes[0: cope_size] = boxes[0: cope_size]
                 ret_labels[0: cope_size] = labels[0: cope_size]
-                ret_difficults[0: cope_size] = different[0: cope_size]
+                # ret_difficults[0: cope_size] = different[0: cope_size]
                 yield img, ret_boxes, ret_labels
             else:
                 img_path = os.path.join(self.train_path, img_name)

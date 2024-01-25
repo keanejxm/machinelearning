@@ -19,6 +19,35 @@ class Yolo3Model:
         self.anchors = anchors  # 锚点
         self.class_num = class_num  # 类别数量
 
+        self.yolo_anchors = []
+        self.yolo_classes = []
+
+        for mask_pair in self.anchor_mask:
+            mask_anchors = []
+            for mask in mask_pair:
+                mask_anchors.append(self.anchors[2 * mask])
+                mask_anchors.append(self.anchors[2 * mask + 1])
+            self.yolo_anchors.append(mask_anchors)
+            self.yolo_classes.append(class_num)
+
+    def get_anchors(self):
+        return self.anchors
+
+    def get_anchor_mask(self):
+        return self.anchor_mask
+
+    def get_class_num(self):
+        return self.class_num
+
+    def get_down_sample_ratio(self):
+        return self.down_sample_ratio
+
+    def get_yolo_anchors(self):
+        return self.yolo_anchors
+
+    def get_yolo_classes(self):
+        return self.yolo_classes
+
     @staticmethod
     def conv_dbl(input_data, num_filters, filter_size, stride, padding, use_cudnn=True):
         # 卷积+batchNorm
@@ -58,12 +87,12 @@ class Yolo3Model:
             stride=stride,
             padding=padding)
 
-    # 残差块res_unit(包含两个卷积层一个残差块)
+    # 残差块res_unit(包含两个卷积层一个跳跃结构)
     def res_unit_block(self, input_data, num_filters):
         conv1 = self.conv_dbl(input_data, num_filters=num_filters, filter_size=1, stride=1, padding=0)
         conv2 = self.conv_dbl(conv1, num_filters=num_filters * 2, filter_size=3, stride=1, padding=1)
         # 输入 +输出
-        out = fluid.layers.elementwise_add(x=input, y=conv2, act=None)
+        out = fluid.layers.elementwise_add(x=input_data, y=conv2, act=None)
         return out
 
     # 基本块，一个填充zero_padding,一个dbl（conv_dbl）,n个残差块
@@ -73,12 +102,16 @@ class Yolo3Model:
         return input_data
 
     def yolo_detection_block(self, conv, num_filters):
+        """检测模块"""
+        # 创建4个卷积层
         for j in range(2):
-            conv = self.conv_dbl(input, num_filters=num_filters, filter_size=1, stride=1, padding=0)
+            conv = self.conv_dbl(conv, num_filters=num_filters, filter_size=1, stride=1, padding=0)
             conv = self.conv_dbl(conv, num_filters=num_filters * 2, filter_size=3, stride=1, padding=1)
-        route = self.conv_dbl(conv, num_filters=num_filters, filter_size=1, stride=1, padding=0)
-        tip = self.conv_dbl(route, num_filters=num_filters * 2, filter_size=3, stride=1, padding=1)
-        return route, tip
+        # 返回倒数第二层结果
+        route_ = self.conv_dbl(conv, num_filters=num_filters, filter_size=1, stride=1, padding=0)
+        # 返回倒数第一层结果
+        tip = self.conv_dbl(route_, num_filters=num_filters * 2, filter_size=3, stride=1, padding=1)
+        return route_, tip
 
     # 上采样
     def up_sample(self, input, scale=2):
@@ -105,22 +138,29 @@ class Yolo3Model:
         conv1 = self.conv_dbl(input_data=img, num_filters=32, filter_size=3, stride=1, padding=1)
         # 第二个卷积层
         out_data = self.down_sample(conv1, num_filters=conv1.shape[1] * 2)
-
+        # 12884卷积层
         blocks = []
         for i, stage_count in enumerate(stages):
+            # n个残差块（1,2,8,8,4）
             block = self.resn_block(input_data=out_data,
                                     num_filters=32 * (2 ** i),
                                     count=stage_count)  # 基本块数量
             blocks.append(block)
+            # 用来代替池化层（池化层做降采样）的卷积层，使用步长为2的卷积代替池化层做降采样
             if i < len(stages) - 1:
-                # 如果不是最后一组做降采样
+                # 如果不是最后一组做降采样，用来代替池化层
                 out_data = self.down_sample(block, num_filters=block.shape[1] * 2)
         blocks = blocks[-1:-4:-1]  # 取倒数三层，并且逆序，后面特征融合使用
+        # ---------------------------Darknet-53骨干网络结束---------------------------
+        route_ = None
         for i, block in enumerate(blocks):
-            if i > 0:
-                block = fluid.layers.concat(input=[route, block], axis=1)  # 上采样进行特征融合
-            route, tip = self.yolo_detection_block(block,
-                                                   num_filters=512 // (2 ** i))
+            if i > 0 and route_:
+                route_ = self.conv_dbl(route_, 256 // (2 ** i), filter_size=1, stride=1, padding=0)
+                # 上采样
+                route_ = self.up_sample(route_)
+                block = fluid.layers.concat(input=[route_, block], axis=1)  # 上采样进行特征融合
+            # 里面一共有6个卷积层，返回5个卷积后的结果和6个卷积后的结果
+            route_, tip = self.yolo_detection_block(block, num_filters=512 // (2 ** i))
             param_attr = ParamAttr(initializer=fluid.initializer.Normal(0., 0.02))
             bias_attr = ParamAttr(initializer=fluid.initializer.Constant(0.0), regularizer=L2Decay(0.))
             block_out = fluid.layers.conv2d(input=tip,
@@ -133,10 +173,6 @@ class Yolo3Model:
                                             bias_attr=bias_attr
                                             )
             self.outputs.append(block_out)
-            if i < len(blocks) - 1:
-                route = self.conv_dbl(route, 256 // (2 ** i), filter_size=1, stride=1, padding=0)
-                # 上采样
-                route = self.up_sample(route)
         return self.outputs
 
 
