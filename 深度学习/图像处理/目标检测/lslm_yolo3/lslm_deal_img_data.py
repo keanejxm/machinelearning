@@ -251,8 +251,8 @@ class DealImgData:
             "saveModelDir": "./model/persis_model",  # 增量模型保存目录
             "pretrainedModelDir": "./model/pretrained_model",  # 预训练模型保存目录
             "inferenceModelDir": "./model/inference_model",  # 预测模型路径
-            # "numEpochs": 80,
-            "numEpochs": 1,
+            "numEpochs": 80,
+            # "numEpochs": 5,
             "validThresh": 0.01,
             "nmsTopK": 300,
             "nmsPosK": 300,
@@ -263,8 +263,8 @@ class DealImgData:
                 "lrEpochs": [30, 50, 65],  # 学习率衰减分段（3个数字分为4段）
                 "lrDecay": [1, 0.5, 0.25, 0.1]  # 每段采用的学习率，对应lr_epochs参数4段
             },
-            # "trainBatchSize": 32,  # 对于完整yolov3，每一批的训练样本不能太多，内存会炸掉；如果使用tiny，可以适当大一些
-            "trainBatchSize": 2,  # 对于完整yolov3，每一批的训练样本不能太多，内存会炸掉；如果使用tiny，可以适当大一些
+            "trainBatchSize": 32,  # 对于完整yolov3，每一批的训练样本不能太多，内存会炸掉；如果使用tiny，可以适当大一些
+            # "trainBatchSize": 5,  # 对于完整yolov3，每一批的训练样本不能太多，内存会炸掉；如果使用tiny，可以适当大一些
         }
 
     def label_params(self):
@@ -485,4 +485,5 @@ class DealImgData:
 
 if __name__ == '__main__':
     obj = DealImgData()
-    obj.read_img('train')
+    for i in obj.read_img('train'):
+        print(i)

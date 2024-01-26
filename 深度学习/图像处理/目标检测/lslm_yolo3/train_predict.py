@@ -87,36 +87,34 @@ class TrainModel(DealImgData):
             fluid.io.load_vars(exe, self.img_param["pretrainedModelDir"], main_program=program, predicate=if_exist)
 
     def train_model(self):
+        # 创建2个program
         # 5、定义执行器
         place = fluid.CUDAPlace(0) if self.img_param["useGPU"] else fluid.CPUPlace()
-        # 创建2个program
         train_program = fluid.Program()
         start_program = fluid.Program()
-        # "max_box_num": 20,  # 一幅图上最多有多少个目标
-        max_box_num = self.img_param["maxBoxNum"]
-        # 1、定义变量
-        img = fluid.layers.data(name="img", shape=self.img_param["inputSize"], dtype="float32")
-        gt_box = fluid.layers.data(name="gt_box", shape=[max_box_num, 4], dtype="float32")
-        gt_label = fluid.layers.data(name="gt_label", shape=[max_box_num], dtype="int32")
-        # 2、构建训练模型
-        anchors = self.img_param["anchors"]
-        anchor_mask = self.img_param["anchorMask"]  # Anchor Box序号
-        class_dim = self.img_param["classDim"]  # 初始化的时候设置
-        # 6、定义数据喂入器
         with fluid.program_guard(train_program, start_program):
-            feeder = fluid.DataFeeder(feed_list=[img, gt_box, gt_label], place=place, program=train_program)
-            reader = self.paddle_data_reader()
-            reader = paddle.reader.shuffle(reader, buf_size=self.img_param["trainBatchSize"])
-            reader = paddle.batch(reader, batch_size=self.img_param["trainBatchSize"])
+            # "max_box_num": 20,  # 一幅图上最多有多少个目标
+            max_box_num = self.img_param["maxBoxNum"]
+            # 1、定义变量
+            img = fluid.layers.data(name="img", shape=self.img_param["inputSize"], dtype="float32")
+            gt_box = fluid.layers.data(name="gt_box", shape=[max_box_num, 4], dtype="float32")
+            gt_label = fluid.layers.data(name="gt_label", shape=[max_box_num], dtype="int32")
+            # 2、构建训练模型
+            anchors = self.img_param["anchors"]
+            anchor_mask = self.img_param["anchorMask"]  # Anchor Box序号
+            class_dim = self.img_param["classDim"]  # 初始化的时候设置
             with fluid.unique_name.guard():
                 # 创建yolo模型
                 model = Yolo3Model(class_dim, anchors, anchor_mask)
                 output = model.net(img)
-        # 3.计算损失函数
-        loss = self.get_losses(model, output, gt_box, gt_label)
-        # # 4、定义优化器
-        # optimizer = self.optimizer_sgd_setting()
-        # optimizer.minimize(loss)
+            # 3.计算损失函数，4、定义优化器
+            loss = self.get_losses(model, output, gt_box, gt_label)
+
+            # 6、定义数据喂入器
+            feeder = fluid.DataFeeder(feed_list=[img, gt_box, gt_label], place=place, program=train_program)
+            reader = self.paddle_data_reader()
+            reader = paddle.reader.shuffle(reader, buf_size=self.img_param["trainBatchSize"])
+            reader = paddle.batch(reader, batch_size=self.img_param["trainBatchSize"])
 
         # 创建exe,加载增量模型
         exe = fluid.Executor(place)
