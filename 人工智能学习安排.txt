@@ -21,6 +21,7 @@ PyTorch基本使用（上）-->OCR
 
 20240311（周一）
 注意力机制与Transformer（上） NLP
+注意力机制与Transformer（下） NLP
 20240104（周四）
 语言模型、循环神经网络（上）pyTorch
 语言模型、循环神经网络（下）pyTorch
