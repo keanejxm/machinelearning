@@ -51,6 +51,7 @@ import sys
 import multiprocessing
 from gensim.models import Word2Vec
 from gensim.models.word2vec import LineSentence  # 按行读取
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     format=""
@@ -62,23 +63,23 @@ out_file2 = ""
 # 定义模型
 model = Word2Vec(
     LineSentence(in_file),
-    vector_size = 100,# 词向量维度
-    window=3,# 窗口大小
+    vector_size=100,  # 词向量维度
+    window=3,  # 窗口大小
     min_count=5,
     workers=multiprocessing.cpu_count()
 )
 # 保存模型
 model.save(out_file1)
 # 保存权重
-model.wv.save_word2vec_format(out_file2,binary=False)
+model.wv.save_word2vec_format(out_file2, binary=False)
 # 4、测试
 # 加载模型
-model =Word2Vec.load("wiki.zh.text.model")
+model = Word2Vec.load("wiki.zh.text.model")
 count = 0
 for word in model.wv.index2word:
-    print(word,model[word])
-    count +=1
-    if count>=10:
+    print(word, model[word])
+    count += 1
+    if count >= 10:
         break
 
 result = model.wv.most_similar(u"铁路")
