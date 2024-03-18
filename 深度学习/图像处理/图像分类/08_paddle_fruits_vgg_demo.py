@@ -21,6 +21,8 @@ from common_utils import *
     一维数组，但是模型期望接收的是三维数组。在feeder中，PaddlePaddle会根据feed_list中定义的输入变量要求，将数据进行重塑以匹配模型的输入
     形状。因此，尽管最初的数据是一维的，但在喂入模型时会被正确地转换成了模型期望的三维形状。
 """
+
+
 # 读取数据、处理数据
 
 class FruitsVGG:
@@ -101,7 +103,6 @@ class FruitsVGG:
     @staticmethod
     def vgg_model(img, type_size):
         """"""
-
         # 卷积池化组
         def conv_pool(ipt, num_filter, groups, dropouts):
             return fluid.nets.img_conv_group(input=ipt,
