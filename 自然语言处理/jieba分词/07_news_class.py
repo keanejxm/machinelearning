@@ -285,10 +285,10 @@ tensor_words = fluid.create_lod_tensor(
 )
 result = exe.run(
     program=infer_program,
-    feed={feed_names[0]:tensor_words},
+    feed={feed_names[0]: tensor_words},
     fetch_list=target_var
 )
-names = ["文化","娱乐","体育","财经","房产","汽车","教育","科技","国际","证券"]
+names = ["文化", "娱乐", "体育", "财经", "房产", "汽车", "教育", "科技", "国际", "证券"]
 for r in result[0]:
-    idex = np.argmax(r)# 去除最大值索引
-    print("预测结果：",names[idex],"概率：",r[idex])
+    idex = np.argmax(r)  # 去除最大值索引
+    print("预测结果：", names[idex], "概率：", r[idex])
