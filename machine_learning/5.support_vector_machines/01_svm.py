@@ -25,7 +25,11 @@ train_x, test_x, train_y, test_y = ms.train_test_split(x, y, test_size=0.1, rand
 
 # model = svm.SVC(kernel="linear")
 # model = svm.SVC(kernel="poly",degree=3)
-model = svm.SVC(kernel="rbf",gamma=0.1,C=1)
+model = svm.SVC(
+    kernel="rbf",
+    gamma=0.1, #概率密度标准差
+    C=1# 概率强度
+)
 model.fit(train_x, train_y)
 
 pred_test_y = model.predict(test_x)
