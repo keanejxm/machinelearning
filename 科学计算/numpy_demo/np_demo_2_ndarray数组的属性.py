@@ -33,11 +33,20 @@ print(len(arr))  # 数组的长度（数组的行数）
 
 # -------------------------索引下标--------------------
 
-arr = np.arange(1,9,1)
+arr = np.arange(1, 9, 1)
 
-arr.shape = (2,2,2)
+arr.shape = (2, 2, 2)
 print(arr)
 print(arr[0])
 print(arr[0][0])
 print(arr[0][0][0])
-print(arr[0,0,0])
+print(arr[0, 0, 0])
+
+# 其他属性
+print(arr.ndim)  # 维度
+print(arr.itemsize)  # 元素字节数
+print(arr.nbytes)  # 总字节数
+print(arr.real)  # 复数数组的实数部分
+print(arr.real)  # 复数数组的虚数部分
+print(arr.T)  # 转置
+print(arr.flat)  # 扁平化迭代器
