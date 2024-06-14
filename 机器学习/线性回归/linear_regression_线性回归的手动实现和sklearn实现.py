@@ -80,7 +80,7 @@ class ManualLinear:
         plt.subplot(3, 1, 2)
         plt.plot(self.train_x, pred_y)
         plt.subplot(3, 1, 3)
-        plt.plot( self.epoches, self.losses)
+        plt.plot(self.epoches, self.losses)
         plt.show()
 
     def start(self):
@@ -100,9 +100,7 @@ class SklearnLinearRegression:
 
     def linear_regression(self):
         model = LinearRegression()
-        model.fit(self.train_x,self.train_y)
-
-
+        model.fit(self.train_x, self.train_y)
 
 
 if __name__ == '__main__':
