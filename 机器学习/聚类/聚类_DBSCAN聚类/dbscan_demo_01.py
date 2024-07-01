@@ -8,6 +8,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import sklearn.cluster as sc
+import sklearn.metrics as sm
 
 
 class ClusterDbscan:
@@ -37,16 +38,28 @@ class ClusterDbscan:
         # print(label)
         return label
 
-    def plt_draw(self,data,label):
+    def plt_draw(self, data, label):
         """"""
         plt.figure("DBSCAN_Cluster")
-        plt.scatter(data["x1"],data["x2"],c=label)
+        plt.scatter(data["x1"], data["x2"], c=label)
         plt.show()
+
+    def assess_model(self, data, label):
+        """
+        模型评估：聚类的模型评估指标为：轮廓系数
+        """
+        sil_score = sm.silhouette_samples(
+            data,
+            label,
+            metric="euclidean"  # 欧式距离
+        )
+        print(sil_score)
 
     def start(self):
         data = self.read_data()
         label = self.dbscan_model(data)
-        self.plt_draw(data,label)
+        self.assess_model(data,label)
+        self.plt_draw(data, label)
 
 
 if __name__ == '__main__':

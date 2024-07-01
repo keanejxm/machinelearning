@@ -8,7 +8,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import sklearn.cluster as sc
-
+import sklearn.metrics as sm
 
 class KMean:
     def __init__(self):
@@ -43,10 +43,19 @@ class KMean:
         plt.scatter(centers_df["x1"], centers_df["x2"], marker="+",linewidths=20)
         plt.show()
 
+    def assess_model(self,data,label):
+        sil_score = sm.silhouette_samples(
+            data,
+            label,
+            metric="euclidean"
+        )
+        print(sil_score)
+
     def start(self):
         data = self.read_data()
         # self.plt_draw(data)
         label, centers = k_mean_obj.k_mean_model(data)
+        self.assess_model(data,label)
         self.plt_draw(data, label, centers)
 
 
