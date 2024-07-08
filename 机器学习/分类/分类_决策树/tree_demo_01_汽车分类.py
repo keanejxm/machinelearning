@@ -32,7 +32,11 @@ class CarClassify:
 
     # 创建模型
     def make_model(self, data):
-        """"""
+        """
+        随机森林
+        :param data:
+        :return:
+        """
         train_x = data.iloc[:, :-1]
         train_y = data.iloc[:, -1]
         model = se.RandomForestClassifier(max_depth=4)
