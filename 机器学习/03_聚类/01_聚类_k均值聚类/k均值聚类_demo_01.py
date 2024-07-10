@@ -5,6 +5,7 @@
 # @Site    : 
 # @File    : 聚类_k均值聚类.py
 # @Software: PyCharm
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import sklearn.cluster as sc
@@ -12,7 +13,10 @@ import sklearn.metrics as sm
 
 class KMean:
     def __init__(self):
-        self.data_path = r"D:\keane_data\data_test\multiple3.txt"
+        if os.path.exists(r"D:\keane_data\data_test\multiple3.txt"):
+            self.data_path = r"D:\keane_data\data_test\multiple3.txt"
+        else:
+            self.data_path = r"E:\keane_data\data_test\multiple3.txt"
 
     def read_data(self):
         """
@@ -40,7 +44,7 @@ class KMean:
         plt.title("聚类分布")
         plt.scatter(data["x1"], data["x2"], c=label)
         centers_df = pd.DataFrame(centers, columns=["x1", "x2"])
-        plt.scatter(centers_df["x1"], centers_df["x2"], marker="+",linewidths=20)
+        plt.scatter(centers_df["x1"], centers_df["x2"], marker="+", linewidths=20)
         plt.show()
 
     def assess_model(self,data,label):
