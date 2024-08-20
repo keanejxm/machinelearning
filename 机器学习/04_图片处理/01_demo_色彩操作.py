@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-class DealImage:
+class DealImageColor:
     def __init__(self):
         self.image_path = "E:\keane_data\opencv_img\img_data"
 
@@ -145,7 +145,7 @@ class DealImage:
 
 
 if __name__ == '__main__':
-    di_obj = DealImage()
+    di_obj = DealImageColor()
     # di_obj.gray_image()
     # di_obj.color_channel()
     # di_obj.gray_histogram()
