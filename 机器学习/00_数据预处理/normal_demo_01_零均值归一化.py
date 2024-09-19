@@ -16,6 +16,11 @@ raw_samples = np.array(
      [1.0, -4.0, 2.0]]
 )
 print(raw_samples)
+mean_value = raw_samples.mean(axis=0)
+std_value = raw_samples.std(axis=0)
+print(mean_value,std_value)
+
+
 # 求每一列的均值和标准差
 mean_value = raw_samples.mean(axis=0)
 std_value = raw_samples.std(axis=0)
