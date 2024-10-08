@@ -35,4 +35,3 @@ for col in std_samples.T:
 print(std_samples)
 print(std_samples.mean(axis=0))
 print(std_samples.std(axis=0))
-
