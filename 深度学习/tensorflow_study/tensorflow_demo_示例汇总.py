@@ -24,8 +24,8 @@ tensor_nd = tf.random_normal(shape=(3, 3), mean=1.0, stddev=2.0, dtype=tf.float3
 tensor_ph1 = tf.placeholder(dtype=tf.float32, shape=(2, 3))
 tensor_ph2 = tf.placeholder(dtype=tf.float32, shape=(None, 3))
 # static_ph2 = tensor_ph2.get_shape()
-dynamic_ph2 = tf.shape(tensor_ph2)
-
+dynamic_ph2 = tf.reshape(tensor_ph2,[3,4])
+print(dynamic_ph2)
 # 执行
 with tf.Session() as sess:
     hello = sess.run(hello)
@@ -46,7 +46,7 @@ with tf.Session() as sess:
     print(sess.run(tensor_ph1, feed_dict={tensor_ph1: [[2, 2, 2],
                                                        [3, 3, 3]]}))
 
-    print(sess.run(tensor_ph2, feed_dict={tensor_ph2: [[2, 2, 2]]}))
+    # print(sess.run(tensor_ph2, feed_dict={tensor_ph2: [[2, 2, 2]]}))
     # 动态与静态
-    print(sess.run(dynamic_ph2))
+    # print(sess.run(dynamic_ph2))
 
