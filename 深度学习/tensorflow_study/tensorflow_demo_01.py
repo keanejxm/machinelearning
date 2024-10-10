@@ -14,7 +14,7 @@ import tensorflow as tf
 # 创建张量
 x = tf.constant(100.0)
 y = tf.constant(200.0)
-temp = tf.add(x,y)
+temp = tf.add(x, y)
 
 # 执行
 # sess = tf.Session()
